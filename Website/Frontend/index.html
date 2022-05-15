@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Vue (development version) -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <!-- Vue router -->
+    <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>Price Comparison Website</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Top bar -->
+        <nav class="navbar mb-4 navbar-dark bg-dark sticky-top">
+            <div class="container">
+                <a href="/" class="navbar-brand mb-0 h1" v-text="sitename"></a>
+                <div id="search" class="d-flex">
+                    <input type="search" class="form-control me-2" placeholder="Enter book titile, author or ISBN"
+                        v-model="searchQuery">
+                    <button class='btn btn-outline-light shadow-none' @click="searchBooks">Search</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Displaying books list (also works with search) -->
+        <template v-if="!showBookPage">
+            <div class="container">
+                <!-- Book list -->
+                <div class="books-list row row-cols-4 g-4 mb-3">
+                    <div class="col" v-for="book in loadedData.data">
+                        <div class="card h-100">
+                            <img :src="book.formats[0].image_url" class='card-img-top' height="400">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.title }}</h5>
+                                <h6 class="card-subtitle text-muted">{{ book.author }}</h6>
+                                <a href="#" class="stretched-link" @click="getBook(book.book_id)"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination row mb-3">
+                    <p class="text-end">Page <strong>{{ loadedData.page }}</strong> of <strong>{{ loadedData.page_count
+                            }}</strong></p>
+                    <ul class="pagination justify-content-end">
+                        <li class="page-item" :class="loadedData.page === 1 && 'disabled'"><a
+                                class="page-link link-dark shadow-none" href="#" @click="goToPage(1)">First</a></li>
+                        <li class="page-item" :class="loadedData.page === 1 && 'disabled'"><a
+                                class="page-link link-dark shadow-none" href="#"
+                                @click="goToPage(loadedData.page - 1)">Previous</a>
+                        </li>
+                        <li class="page-item" :class="loadedData.page === loadedData.page_count && 'disabled'"><a
+                                class="page-link link-dark shadow-none" href="#"
+                                @click="goToPage(loadedData.page + 1)">Next</a>
+                        </li>
+                        <li class="page-item" :class="loadedData.page === loadedData.page_count && 'disabled'"><a
+                                class="page-link link-dark shadow-none" href="#"
+                                @click="goToPage(loadedData.page_count)">Last</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </template>
+
+        <!-- Display book page -->
+        <template v-else>
+            <!-- Book information -->
+            <div class="container">
+                <div class="row">
+                    <img class="book-image col-3 img-fluid" :src="bookPageInfo.selectedFormat.image_url">
+                    <div class="col-9">
+                        <div class="book-heading pb-4">
+                            <h1>{{ bookPageInfo.data.title }}</h1>
+                            <h2 class="text-muted">{{ bookPageInfo.data.author }}</h2>
+                        </div>
+
+                        <div class="formats pb-4">
+                            <p><strong>ISBN:</strong> {{ bookPageInfo.selectedFormat.isbn }}</p>
+
+                            <label for="formats-list"><strong>Format:</strong></label>
+                            <select name="formats-list" class="form-select d-inline w-auto"
+                                v-model="bookPageInfo.selectedFormat">
+                                <option class="format-option" v-for="format_option in bookPageInfo.data.formats"
+                                    :value="format_option">
+                                    {{ format_option.name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Comparisons table -->
+                        <div class="comparisons-table pb-4">
+                            <table class="table table-striped w-50">
+                                <thead>
+                                    <tr class="table-dark">
+                                        <th class="text-center" scope="col">#</th>
+                                        <th class="text-center" scope="col">Store</th>
+                                        <th class="text-center" scope="col">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="store" v-for="(store, key) in bookPageInfo.selectedFormat.comparisons">
+                                        <th class="text-center" scope="col" class='book-count'>{{ key + 1 }}</th>
+                                        <th class="text-center" scope="col" class='book-link'><a class="link-dark"
+                                                :href="store.url"> Buy from {{ getUrlHostname(store.url) }}</a></th>
+                                        <th class="text-center" scope="col" class='book-price'>£{{ store.price }}</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+    </div>
+
+    <!-- Connecting app.js file -->
+    <script src="app.js"></script>
+</body>
+
+</html>
